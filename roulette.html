@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shitty List Roulette</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            background: #ccc;
+            border-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .level-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .level-card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .level-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .thumbnail {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            object-fit: cover;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .victory {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 3em;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .badge.live {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #28a745;
+        }
+
+        .badge.offline {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+
+        .badge-wrap {
+            text-align: center;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Shitty List Roulette</h1>
+        
+        <div class="badge-wrap"><span class="badge" id="sourceBadge" style="display:none;"></span></div>
+
+        <div class="controls">
+            <select id="categorySelect">
+                <option value="all">All Categories</option>
+                <option value="main">Main List</option>
+                <option value="extended">Extended List</option>
+                <option value="advanced">Advanced List</option>
+                <option value="unbounded">Unbounded List</option>
+            </select>
+            <button id="startBtn">Start Challenge</button>
+            <button id="giveUpBtn" disabled>Give Up</button>
+            <button id="restoreBtn">Restore Run</button>
+            <button id="exportBtn">Export Run</button>
+            <input type="number" id="skipsInput" min="0" max="99" value="5" title="Skips per run" style="width:90px; flex:0 0 90px;" />
+        </div>
+
+        <div id="restorePanel" style="display:none; margin-bottom:20px; background:#f8f9fa; padding:20px; border-radius:12px;">
+            <h3 style="color:#667eea; margin-bottom:8px;">Restore a run</h3>
+            <p style="font-size:13px; color:#666; margin-bottom:8px;">One level per line: <code>Name, achieved%</code> — or paste history lines like <code>Name Required: 1% | Achieved: 1%</code></p>
+            <textarea id="restoreText" rows="10" style="width:100%; padding:10px; border:2px solid #667eea; border-radius:8px; font-family:monospace; font-size:13px;">Shitty Asmodeus, 1
+Shitty Marathon, 2
+Shitty Eyes In The Water, 3
+Shitty Abyss Of Darkness, 4
+Shitty Sweeping Demon II, 5
+Shitty Loochiverse, 6
+Shitty Spectrum Cyclone, 7
+Shitty Sakupen hell, 8
+Shitty Subterminal Point, 9
+Shitty Exosphere, 10
+Shitty Enjoy, 11
+Shitty Proton Launcher, 12
+Shitty Sonic Wave Infinity, 13
+Shitty Dark Flare, 14
+Shitty Cosmic Cyclone, 15
+Shitty Sazerix, 16
+Shitty Thinking Space II, 17</textarea>
+            <div class="input-group" style="margin-top:10px;">
+                <input type="text" id="forceNext" placeholder="Force next level (optional)" list="levelNames" value="Shitty Artemis 13" style="flex:1; padding:12px; border:2px solid #667eea; border-radius:8px;">
+                <datalist id="levelNames"></datalist>
+                <button onclick="restoreRun()">Restore</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Required %</div>
+                <div class="stat-value" id="requiredPercent">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Levels Cleared</div>
+                <div class="stat-value" id="levelsCleared">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Levels</div>
+                <div class="stat-value" id="totalLevels">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Skips Left</div>
+                <div class="stat-value" id="skipsLeftEl">-</div>
+            </div>
+        </div>
+
+        <div id="content"></div>
+
+        <div class="history" id="historySection" style="display: none;">
+            <h3>History</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://ultimateshittylist.fun/api';
+        const SITE_BASE = 'https://ultimateshittylist.fun';
+        const EMBEDDED_LEVELS = [{"rank":1,"name":"Shitty Artemis 13","slug":"shitty-artemis-13","creator":"slye1234, Z3roit, Aquatic, GMDWonderline, Murelagi","verifier":"uzuden","category":"main","listPercent":76,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/eOSs656m-I8?si=ZfM93Kh1CVMNCl4I","gdId":"148546179"},{"rank":2,"name":"Shitty Angelicide","slug":"shitty-angelicide","creator":"WinZone, Deceit and jackyy","verifier":"Xtra8nuggies","category":"main","listPercent":56,"thumbnailUrl":"/assets/levels/upload-1788757451202-6cc5b2c6e7c9.jpg","youtubeUrl":"https://youtu.be/URYkd3KUY7s?si=LaniNPCpjyQRhtzy","gdId":"132152284"},{"rank":3,"name":"Shitty Grief","slug":"shitty-grief-rrift-stell-version","creator":"rRiftGD","verifier":"Stell06","category":"main","listPercent":56,"thumbnailUrl":"https://i.ytimg.com/vi/tkyYX8iPCUM/maxresdefault.jpg","youtubeUrl":"https://youtu.be/tkyYX8iPCUM?si=Srbwam9jh5ZNigh_","gdId":"119485203"},{"rank":4,"name":"Shitty Flamewall","slug":"shitty-flamewall","creator":"Deceit","verifier":"Oblivionus","category":"main","listPercent":56,"thumbnailUrl":"/assets/levels/shitty-flamewall.webp","youtubeUrl":"https://youtu.be/2Qe5wy3aVrc","gdId":"116795677"},{"rank":5,"name":"Shitty Society","slug":"shitty-society-slye","creator":"slye1234, Faasuk, ZunSet08, Viper, ku, Roxy, GMDWonderline, Kotokov, Z3roit","verifier":"o.kuang","category":"main","listPercent":56,"thumbnailUrl":"/assets/levels/upload-1788757550347-9f77b4ed9040.jpg","youtubeUrl":"https://www.youtube.com/watch?v=lKEe8qSCDHI","gdId":"145414176"},{"rank":6,"name":"Shitty Nullscapes","slug":"shitty-nullscapes-dofar","creator":"dofar","verifier":"Nutbasta","category":"main","listPercent":56,"thumbnailUrl":"https://i.ytimg.com/vi/kNZjWFTNtNI/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=kNZjWFTNtNI","gdId":"113669811"},{"rank":7,"name":"Shitty Aquamarine","slug":"shitty-aquamarine-uzuden","creator":"UzuDen, gmdgweede, fottexx, art.","verifier":"UzuDen","category":"main","listPercent":57,"thumbnailUrl":"/assets/levels/shitty-aquamarine.webp","youtubeUrl":"https://www.youtube.com/watch?v=CJbW31AbGrU","gdId":"123938279"},{"rank":8,"name":"Shitty Limbo","slug":"shitty-limbo-asteria","creator":"Kiwi1938, Achlys, Oculations, Prometheus, MamaMauve, Kobra456, Ryoui, /Swan, Rixen Ace, Deceit, iRaily, CarlIsBored, Asteria., Whitar, fizzyy, xcl_0624","verifier":"Skeeb","category":"main","listPercent":57,"thumbnailUrl":"/assets/levels/shitty-limbo.webp","youtubeUrl":"https://www.youtube.com/watch?v=78qhIkwPqUg","gdId":"91251360"},{"rank":9,"name":"Shitty Spectre","slug":"shitty-spectre","creator":"Karoo, Blink, Fryy_55, PhysixX, Lord of the Geese, Guille N.S, Chaotrix, Berriez. Gamer2052, Mamamuave, Acidius, Sovola, Deceit, zEvolution64, Feezy.y, Lightnng, IHas","verifier":"ItzMira","category":"main","listPercent":57,"thumbnailUrl":"/assets/levels/shitty-spectre.webp","youtubeUrl":"https://youtu.be/rXi93MEa0dg","gdId":"129110835"},{"rank":10,"name":"Shitty Kyouki","slug":"shitty-kyouki","creator":"Deceit","verifier":"Diverse","category":"main","listPercent":57,"thumbnailUrl":"/assets/levels/shitty-kyouki.webp","youtubeUrl":"https://www.youtube.com/watch?v=bE61mDudcuQ\u0026t=58s","gdId":"94845605"},{"rank":11,"name":"Shitty Neutra","slug":"shitty-neutra","creator":"/Swan, fizzae, deceit, jackyy, berriez, zEvolution, whitar, dofar, revolutionary","verifier":"Dandy Chiggins","category":"main","listPercent":57,"thumbnailUrl":"/assets/levels/shitty-neutra.webp","youtubeUrl":"https://youtu.be/zFTsd3rEkvE","gdId":"124514390"},{"rank":12,"name":"Shitty Anathema","slug":"shitty-anathema-anioslimek","creator":"AnioSlimek","verifier":"Acacia","category":"main","listPercent":57,"thumbnailUrl":"https://i.ytimg.com/vi/o7Z9tXf5fms/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=o7Z9tXf5fms","gdId":"116181725"},{"rank":13,"name":"Shitty Stellar Night","slug":"shitty-stellar-night-heizen","creator":"heizen","verifier":"diverse","category":"main","listPercent":57,"thumbnailUrl":"/assets/levels/shitty-stellar-night.webp","youtubeUrl":"https://youtu.be/cqB7Xa4r4Vs","gdId":"107779823"},{"rank":14,"name":"Shitty Sweeping Demon II","slug":"shitty-sweeping-demon-ii","creator":"slye1234","verifier":"Oblivionus","category":"main","listPercent":57,"thumbnailUrl":"/assets/levels/shitty-sweeping-demon-ii.webp","youtubeUrl":"https://youtu.be/BlLLYFrUx28?si=y8HTpTxPZxJ0vakG","gdId":"134334979"},{"rank":15,"name":"Shitty Abyss Of Darkness","slug":"shitty-abyss-of-darkness-prometheus","creator":"Prometheus","verifier":"kenossongreal6494","category":"main","listPercent":58,"thumbnailUrl":"/assets/levels/shitty-abyss-of-darkness-prometheus.webp","youtubeUrl":"https://youtu.be/InJK1Souv_M?si=89TD1YeGM19Lf8kP","gdId":"81840988"},{"rank":16,"name":"Shitty Kanye House","slug":"shitty-kanye-house","creator":"heptaval","verifier":"Oblivionus","category":"main","listPercent":58,"thumbnailUrl":"/assets/levels/shitty-kanye-house.webp","youtubeUrl":"https://youtu.be/Rj5h2VWTlQw","gdId":"101939849"},{"rank":17,"name":"Shitty Defeated Circles","slug":"shitty-defeated-circles","creator":"nikokuro","verifier":"aidan","category":"main","listPercent":58,"thumbnailUrl":"/assets/levels/shitty-defeated-circles.webp","youtubeUrl":"https://www.youtube.com/watch?v=vJj3HMQuiAs","gdId":"135053561"},{"rank":18,"name":"Shitty Avernus","slug":"shitty-avernus-mrcsgmd","creator":"mrcsgmd, stiven6","verifier":"vic","category":"main","listPercent":58,"thumbnailUrl":"https://i.ytimg.com/vi/D9KQGz5ah3I/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=D9KQGz5ah3I","gdId":"99689695"},{"rank":19,"name":"Shitty Tidal Wave","slug":"shitty-tidal-wave-clare","creator":"DuoFresh","verifier":"Clare","category":"main","listPercent":58,"thumbnailUrl":"https://i.ytimg.com/vi/jIT5kMmAVS8/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=jIT5kMmAVS8","gdId":"114604769"},{"rank":20,"name":"Shitty Exosphere","slug":"shitty-exosphere","creator":"Foin, Fernan, Acidius, Jackyy, Whitar, Dofar, Logan, Chsp, Mystix, Berriez, Experience, Chaotrix, Wiktor, Carl, Blink, Deceit","verifier":"Kosei","category":"main","listPercent":58,"thumbnailUrl":"https://i.ytimg.com/vi/Kt6lmuLyAuM/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=Kt6lmuLyAuM","gdId":"120165654"},{"rank":21,"name":"Shitty Injury","slug":"shitty-injury","creator":"glizzysaurus, y2k","verifier":"Bloff","category":"main","listPercent":58,"thumbnailUrl":"https://i.ytimg.com/vi/JWrAW3AMuEw/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=JWrAW3AMuEw ","gdId":"140771906"},{"rank":22,"name":"Shitty Tunnel Of Despair","slug":"shitty-tunnel-of-despair-stiven6","creator":"stiven6, mrcsgmd, Guille N.S","verifier":"Guille N.S","category":"main","listPercent":58,"thumbnailUrl":"https://i.ytimg.com/vi/PPy77Z0Mtro/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=PPy77Z0Mtro\u0026embeds_referring_euri=https%3A%2F%2Ftslplus.pages.dev%2F\u0026source_ve_path=MjM4NTE","gdId":"104664813"},{"rank":23,"name":"Shitty Corrupted Planet","slug":"shitty-corrupted-planet","creator":"CarlisBored","verifier":"Dandy Chiggins","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/4duF12AGYgE/maxresdefault.jpg","youtubeUrl":"https://youtu.be/4duF12AGYgE","gdId":"91372372"},{"rank":24,"name":"Shitty Acheron","slug":"shitty-acheron-prometheus","creator":"Prometheus","verifier":"BrightBird","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/rGFDwB571g8/hqdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=rGFDwB571g8","gdId":"85438299"},{"rank":25,"name":"Shitty Eternal Night","slug":"shitty-eternal-night","creator":"Prometheus","verifier":"Mira","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/zTImAWphrfw/hqdefault.jpg","youtubeUrl":"https://youtu.be/zTImAWphrfw","gdId":"123770200"},{"rank":26,"name":"Shitty Slaughterhouse","slug":"shitty-slaughterhouse-acropolisboy","creator":"AcropolisBoy","verifier":"skeeb","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/ntNoTsewmUQ/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=ntNoTsewmUQ\u0026t=4s","gdId":"111303305"},{"rank":27,"name":"Shitty Kerosene","slug":"shitty-kerosene","creator":"R4D14710N","verifier":"UzuDen","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/iJkAVmoDfC0/hqdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=iJkAVmoDfC0\u0026source_ve_path=MjM4NTE\u0026embeds_referring_euri=https%3A%2F%2Fglobalshittylist.pages.dev%2F","gdId":"137292175"},{"rank":28,"name":"Shitty Cognition","slug":"shitty-cognition-rixen-ace","creator":"Rixen Ace, Prometheus, Quick","verifier":"Rixen Ace","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/fiJLX3i-nvo/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=fiJLX3i-nvo\u0026t=6s","gdId":"87099040"},{"rank":29,"name":"Shitty Tartarus","slug":"shitty-tartarus-zevolution64","creator":"zEvolution64, Nikokuro","verifier":"Dandy Chiggins","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/55o1ZzUb3rg/maxresdefault.jpg","youtubeUrl":"https://youtu.be/55o1ZzUb3rg","gdId":"140745171"},{"rank":30,"name":"Shitty Eyes In The Water","slug":"shitty-eyes-in-the-water","creator":"Machu0624","verifier":"Samuuu","category":"main","listPercent":59,"thumbnailUrl":"https://i.ytimg.com/vi/rEOtAmtglak/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=rEOtAmtglak","gdId":"97325570"},{"rank":31,"name":"Shitty Eternal Theory","slug":"shitty-eternal-theory","creator":"Xiwake And More","verifier":"Aremi","category":"main","listPercent":60,"thumbnailUrl":"https://i.ytimg.com/vi/7I8U-iCPUoI/maxresdefault.jpg","youtubeUrl":"https://youtu.be/7I8U-iCPUoI","gdId":"101015633"},{"rank":32,"name":"Shitty Loochiverse","slug":"shitty-loochiverse","creator":"Kobra456","verifier":"Kobra456","category":"main","listPercent":60,"thumbnailUrl":"https://i.ytimg.com/vi/g-KJqAQieSM/maxresdefault.jpg","youtubeUrl":"https://youtu.be/g-KJqAQieSM","gdId":"86228104"},{"rank":33,"name":"Shitty Citra","slug":"shitty-citra","creator":"Deceit","verifier":"bnuuy","category":"main","listPercent":60,"thumbnailUrl":"https://i.ytimg.com/vi/TRJRKuFxA28/maxresdefault.jpg","youtubeUrl":"https://youtu.be/TRJRKuFxA28","gdId":"114769704"},{"rank":34,"name":"Shitty Andromeda","slug":"shitty-andromeda-physixx","creator":"PhysixX, zEvolution64, Dofar, feezy, LordOfTheGeese, Revalutionary","verifier":"Twoft","category":"main","listPercent":60,"thumbnailUrl":"https://i.ytimg.com/vi/hCZiIVbk6ew/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=hCZiIVbk6ew","gdId":"130226720"},{"rank":35,"name":"Shitty The Wonder Of You","slug":"shitty-the-wonder-of-you","creator":"Berriez","verifier":"Diverse","category":"main","listPercent":60,"thumbnailUrl":"https://i.ytimg.com/vi/SC14q_F4Q08/hqdefault.jpg","youtubeUrl":"https://youtu.be/SC14q_F4Q08","gdId":"107556121"},{"rank":36,"name":"Shitty Sakupen Circles","slug":"shitty-sakupen-circles-sydnoz","creator":"NorryTeam","verifier":"Clare","category":"main","listPercent":60,"thumbnailUrl":"https://i.ytimg.com/vi/XeIHoJ2KQjc/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=XeIHoJ2KQjc","gdId":"88894578"},{"rank":37,"name":"Shitty Azure Abyss","slug":"shitty-azure-abyss","creator":"Majesstic","verifier":"Nolife","category":"main","listPercent":60,"thumbnailUrl":"https://i.ytimg.com/vi/rz9XexJ6f6k/maxresdefault.jpg","youtubeUrl":"https://youtu.be/rz9XexJ6f6k","gdId":"75908377"},{"rank":38,"name":"Shitty Climax","slug":"shitty-climax","creator":"TravelChimp","verifier":"DeltaPhantom","category":"main","listPercent":61,"thumbnailUrl":"https://i.ytimg.com/vi/2g0X5TFaKHQ/maxresdefault.jpg","youtubeUrl":"https://youtu.be/2g0X5TFaKHQ","gdId":"119023613"},{"rank":39,"name":"Shitty Verdant Landscape","slug":"shitty-verdant-landscape","creator":"iRaily, wMamaMauve, R1fleRob0tz, AcropolisBoy, Whitar, Bluestone413, ChspChips, Kiwi1938, SupaaX.","verifier":"IRaily","category":"main","listPercent":61,"thumbnailUrl":"https://i.ytimg.com/vi/knWvX2Eheg0/maxresdefault.jpg","youtubeUrl":"https://youtu.be/knWvX2Eheg0","gdId":"77989546"},{"rank":40,"name":"Shitty Silent Clubstep","slug":"shitty-silent-clubstep-prometheus","creator":"PrometheusSV","verifier":"GDAchlys","category":"main","listPercent":61,"thumbnailUrl":"https://i.ytimg.com/vi/yRf091mVcPM/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=yRf091mVcPM","gdId":"86205420"},{"rank":41,"name":"Shitty The Hallucination","slug":"shitty-the-hallucination","creator":"Whitar, xcl_0624, iRaily","verifier":"iRaily","category":"main","listPercent":61,"thumbnailUrl":"https://i.ytimg.com/vi/vV4KjSfWvAY/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=vV4KjSfWvAY\u0026t=14s","gdId":"81872820"},{"rank":42,"name":"Shitty Orochi","slug":"shitty-orochi-52","creator":"DIDGIT GD,SLGO,FNMS,MRCS,JASM18,DECEIT.CHSP CHPS","verifier":"FNMS","category":"main","listPercent":61,"thumbnailUrl":"https://i.ytimg.com/vi/R7W-reYl4Mk/maxresdefault.jpg","youtubeUrl":"https://youtu.be/R7W-reYl4Mk","gdId":"128977317"},{"rank":43,"name":"Shitty Cosmic Cyclone","slug":"shitty-cosmic-cyclone","creator":"xcl0624","verifier":"Diverse","category":"main","listPercent":61,"thumbnailUrl":"https://i.ytimg.com/vi/4ZLi3pKyz3U/maxresdefault.jpg","youtubeUrl":"https://youtu.be/4ZLi3pKyz3U","gdId":"94847966"},{"rank":44,"name":"Shitty Mutiny","slug":"shitty-mutiny","creator":"Zernias","verifier":"Zernias","category":"main","listPercent":61,"thumbnailUrl":"https://i.ytimg.com/vi/gTd7r3aHtRA/maxresdefault.jpg","youtubeUrl":"https://youtu.be/gTd7r3aHtRA","gdId":"88919257"},{"rank":45,"name":"Shitty Critical Heat","slug":"shitty-critical-heat","creator":"whitar","verifier":"TheRandomStuff","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/aY7QtBVMkDE/maxresdefault.jpg","youtubeUrl":"https://youtu.be/aY7QtBVMkDE","gdId":"91727264"},{"rank":46,"name":"Shitty Aerial Gleam","slug":"shitty-aerial-gleam","creator":"xcl0624","verifier":"iRailly","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/QG5c7wT9vAM/maxresdefault.jpg","youtubeUrl":"https://youtu.be/QG5c7wT9vAM","gdId":"67942768"},{"rank":47,"name":"Shitty Eternal Moment","slug":"shitty-eternal-moment","creator":"sarcasticmuch","verifier":"Dandy Chiggins","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/6VuMVbOoMIo/hqdefault.jpg","youtubeUrl":"https://youtu.be/6VuMVbOoMIo","gdId":"117476700"},{"rank":48,"name":"Shitty Proton Launcher","slug":"shitty-proton-launcher","creator":"Zevolution64, Karoo, Feezy, Phantom, WDWiktor","verifier":"WDWiktor","category":"main","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=ku0HQHgjtDQ","gdId":"148894712"},{"rank":49,"name":"Shitty Oblivion","slug":"shitty-oblivion","creator":"Deceit, AugustVN, Sulky, Ryoui","verifier":"skeeb","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/eDxH-gAGA30/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=eDxH-gAGA30\u0026t=2s","gdId":"85680078"},{"rank":50,"name":"Shitty Solar Flare","slug":"shitty-solar-flare-deceit","creator":"Deceit","verifier":"xKaii","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/LpVnOekzu4s/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=LpVnOekzu4s\u0026t=1s","gdId":"90978028"},{"rank":51,"name":"Shitty Unknown","slug":"shitty-unknown","creator":"ZotrixGMD \u0026 KotoKov","verifier":"NOCuBbe4","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/pPE07gGadmc/maxresdefault.jpg","youtubeUrl":"https://youtu.be/pPE07gGadmc?si=sKHqdFEVNeVnU12D","gdId":"143776208"},{"rank":52,"name":"Shitty Tartarus","slug":"shitty-tartarus-prometheus","creator":"Prometheus","verifier":"Taiker1544","category":"main","listPercent":62,"thumbnailUrl":"/assets/level-ice.webp","youtubeUrl":"https://www.youtube.com/watch?v=e7FtX_z5MD0","gdId":"82420368"},{"rank":53,"name":"Shitty Hard Machine","slug":"shitty-hard-machine","creator":"Juicybooty395 and more","verifier":"Prometheus","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/qv6O_dC3ptc/maxresdefault.jpg","youtubeUrl":"https://youtu.be/qv6O_dC3ptc","gdId":"81344398"},{"rank":54,"name":"Shitty Kate","slug":"shitty-kate","creator":"IHas","verifier":"normus","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/_GA6jsNzPnU/hqdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=_GA6jsNzPnU","gdId":"94875097"},{"rank":55,"name":"Shitty Tidestep","slug":"shitty-tidestep","creator":"Zernias","verifier":"Zernias","category":"main","listPercent":62,"thumbnailUrl":"https://i.ytimg.com/vi/cmhUrIMiKDM/maxresdefault.jpg","youtubeUrl":"https://youtu.be/cmhUrIMiKDM","gdId":"112024942"},{"rank":56,"name":"Shitty Of Ambrosia","slug":"shitty-of-ambrosia","creator":"jackyy","verifier":"Samuuu18","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/uWO5ahqOeuI/maxresdefault.jpg","youtubeUrl":"https://youtu.be/uWO5ahqOeuI?si=zGLB3QCNSP7iuqWZ","gdId":"95307741"},{"rank":57,"name":"Shitty Terminux","slug":"shitty-terminux","creator":"sarcasticmuch","verifier":"BrightBird","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/UyplC_o1RYs/maxresdefault.jpg","youtubeUrl":"https://youtu.be/UyplC_o1RYs","gdId":"93271685"},{"rank":58,"name":"Shitty KOSETSU","slug":"shitty-kosetsu","creator":"DD3VeZi, ugnke","verifier":"t0xx","category":"main","listPercent":56,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=opANTq4GcEc","gdId":"135964208"},{"rank":59,"name":"Shitty Acheron","slug":"shitty-acheron-twoft","creator":"Twoft","verifier":"Twoft","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/jlkXoW0j3qs/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=jlkXoW0j3qs","gdId":"120726469"},{"rank":60,"name":"Shitty Sigma","slug":"shitty-sigma","creator":"RadioY","verifier":"Kobra456","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/fDuHmvU0A5k/hqdefault.jpg","youtubeUrl":"https://youtu.be/fDuHmvU0A5k","gdId":"69936931"},{"rank":61,"name":"Shitty Walter White","slug":"shitty-walter-white","creator":"Travel Chimp and more","verifier":"Swiborg","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/DAvHeBCK-vI/maxresdefault.jpg","youtubeUrl":"https://youtu.be/DAvHeBCK-vI","gdId":"92208205"},{"rank":62,"name":"Shitty Calamity","slug":"shitty-calamity","creator":"Myz","verifier":"Slayer","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/yHI4g58j7Z0/maxresdefault.jpg","youtubeUrl":"https://youtu.be/yHI4g58j7Z0?si=bXyIFysrUsOb-AH0","gdId":"70981403"},{"rank":63,"name":"Shitty Henken","slug":"shitty-henken","creator":"SuperLegenda Go","verifier":"Gokill","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/eI-NEl09C0Y/maxresdefault.jpg","youtubeUrl":"https://youtu.be/eI-NEl09C0Y","gdId":"86085762"},{"rank":64,"name":"Shitty Glacial Dream","slug":"shitty-glacial-dream","creator":"sarcasticmuch","verifier":"LzKlauss","category":"main","listPercent":63,"thumbnailUrl":"https://i.ytimg.com/vi/Iwr90UF4RcM/maxresdefault.jpg","youtubeUrl":"https://youtu.be/Iwr90UF4RcM","gdId":"117477130"},{"rank":65,"name":"Shitty Sevvend Clubstep","slug":"shitty-sevvend-clubstep","creator":"DD3VeZi, aw1ero, ugnke","verifier":"t0xx","category":"main","listPercent":57,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=7EshNJ2K0wU","gdId":"128692957"},{"rank":66,"name":"Shitty Descent Into Exile","slug":"shitty-descent-into-exile","creator":"iRailly and more","verifier":"iRailly","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/4EkcsqJVKks/maxresdefault.jpg","youtubeUrl":"https://youtu.be/4EkcsqJVKks","gdId":"88754652"},{"rank":67,"name":"Shitty Aquatic Auroras","slug":"shitty-aquatic-auroras","creator":"sarcaticmuch","verifier":"Dandy Chiggins","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/tEUfeGbBVKA/maxresdefault.jpg","youtubeUrl":"https://youtu.be/tEUfeGbBVKA","gdId":"85402108"},{"rank":68,"name":"Shitty Subterminal Point","slug":"shitty-subterminal-point","creator":"Whitar","verifier":"WDWiktor","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/L9BXBDvc7R4/maxresdefault.jpg","youtubeUrl":"https://youtu.be/L9BXBDvc7R4?si=7-DnXOS0Y04pXiZC","gdId":"134927162"},{"rank":69,"name":"Shitty Paranoia","slug":"shitty-paranoia","creator":"DD3VeZi","verifier":"toxx","category":"main","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/Mw5S-l6jjHc","gdId":"136520258"},{"rank":70,"name":"Shitty Sonic Wave Infinity","slug":"shitty-sonic-wave-infinity","creator":"PrometheusSV","verifier":"WaveWarrior","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/7GFznQJPewc/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=7GFznQJPewc","gdId":"81333362"},{"rank":71,"name":"Shitty Natural Disaster","slug":"shitty-natural-disaster","creator":"Raizing","verifier":"Dandy Chiggins","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/KGg9X8Tk0mk/maxresdefault.jpg","youtubeUrl":"https://youtu.be/KGg9X8Tk0mk","gdId":"82497192"},{"rank":72,"name":"Shitty Random Access Memory","slug":"shitty-random-access-memory","creator":"Kiwi1938","verifier":"Riptide","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/LKDkGxGxYwY/maxresdefault.jpg","youtubeUrl":"https://youtu.be/LKDkGxGxYwY","gdId":"91180168"},{"rank":73,"name":"Shitty Tartarus","slug":"shitty-tartarus-fanoms","creator":"Sorry m8, Bull2k, Alecs, Majjestic, NekoWaifu, Uter, Fanoms","verifier":"sydno","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/HL2cH6zZ86Q/maxresdefault.jpg","youtubeUrl":"https://youtu.be/HL2cH6zZ86Q","gdId":"88799208"},{"rank":74,"name":"Shitty Silent Circles","slug":"shitty-silent-circles-sighfour","creator":"Sighfour","verifier":"Bloff","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/ntcJUT1vdhw/maxresdefault.jpg","youtubeUrl":"https://youtu.be/ntcJUT1vdhw","gdId":"131609346"},{"rank":75,"name":"Shitty Dark Flare","slug":"shitty-dark-flare","creator":"iRailly and more","verifier":"Delay","category":"main","listPercent":64,"thumbnailUrl":"https://i.ytimg.com/vi/LMCGAAuAVFA/maxresdefault.jpg","youtubeUrl":"https://youtu.be/LMCGAAuAVFA","gdId":"85481067"},{"rank":76,"name":"Shitty Cold Sweat","slug":"shitty-cold-sweat","creator":"Kiwi1938 and more","verifier":"Lipton","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/D7VpEhuyC2w/hqdefault.jpg","youtubeUrl":"https://youtu.be/D7VpEhuyC2w","gdId":"89847666"},{"rank":77,"name":"Shitty Atomic Cannon Mk. II","slug":"shitty-atomic-cannon-mk-ii","creator":"TravelChimp","verifier":"Shel","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/iADm4pv8VXM/maxresdefault.jpg","youtubeUrl":"https://youtu.be/iADm4pv8VXM","gdId":"118504194"},{"rank":78,"name":"Shitty Pulsar","slug":"shitty-pulsar","creator":"DD3VeZi, aw1ero","verifier":"t0xx","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=maCrilxgiFA","gdId":"139897874"},{"rank":79,"name":"Shitty Kenos","slug":"shitty-kenos-gdteabag","creator":"GDTeabag","verifier":"GDTeabag","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/4MF4yyCtbWo/maxresdefault.jpg","youtubeUrl":"https://youtu.be/4MF4yyCtbWo","gdId":"69695386"},{"rank":80,"name":"Shitty Wasureta","slug":"shitty-wasureta","creator":"MamaMauve","verifier":"iRaily","category":"extended","listPercent":82,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=LVPpeJs_fCA","gdId":"79209711"},{"rank":81,"name":"Shitty Asmodeus","slug":"shitty-asmodeus","creator":"ztMatt, OnlyJul, GojiGT, J_VzyX, KSI","verifier":"NixHeatcliff","category":"extended","listPercent":63,"thumbnailUrl":"/assets/levels/upload-1789333661877-296175fa1181.webp","youtubeUrl":"https://www.youtube.com/watch?v=WSYf9HIkeEE","gdId":"145572883"},{"rank":82,"name":"Shitty The Golden","slug":"shitty-the-golden","creator":"/Swan","verifier":"Diverse","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/9YmF_58zjxE/maxresdefault.jpg","youtubeUrl":"https://www.youtube.com/watch?v=9YmF_58zjxE","gdId":"92603903"},{"rank":83,"name":"Shitty BRUTAL","slug":"shitty-brutal","creator":"DD3VeZi","verifier":"ugnke","category":"extended","listPercent":73,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=5pXIlBmMBDc","gdId":"146590847"},{"rank":84,"name":"Shitty Marathon","slug":"shitty-marathon","creator":"Kiwi1938","verifier":"Kiwi1938","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/uGPZt7RUS-Y/maxresdefault.jpg","youtubeUrl":"https://youtu.be/uGPZt7RUS-Y","gdId":"89827406"},{"rank":85,"name":"Shitty Ashley Wave Trails","slug":"shitty-ashley-wave-trails","creator":"InTyy","verifier":"UzuDen","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/WbsjGKHvI8s/maxresdefault.jpg","youtubeUrl":"https://youtu.be/WbsjGKHvI8s?si=1MddRaof94Nv9O1D","gdId":"148906701"},{"rank":86,"name":"Shitty Spectrum Cyclone","slug":"shitty-spectrum-cyclone","creator":"Lil_Creator","verifier":"qb1","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/1VMFNpNmOjI/hqdefault.jpg","youtubeUrl":"https://youtu.be/1VMFNpNmOjI","gdId":"69735965"},{"rank":87,"name":"Shitty Aronia","slug":"shitty-aronia","creator":"xcl_0624 and more","verifier":"BrightBird","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/YQw8gjEeZRg/maxresdefault.jpg","youtubeUrl":"https://youtu.be/YQw8gjEeZRg","gdId":"94854019"},{"rank":88,"name":"Shitty Sazerix","slug":"shitty-sazerix","creator":"xcl_0624","verifier":"zFhyr","category":"extended","listPercent":65,"thumbnailUrl":"https://i.ytimg.com/vi/IqK3courbcM/maxresdefault.jpg","youtubeUrl":"https://youtu.be/IqK3courbcM","gdId":"95277861"},{"rank":89,"name":"Shitty Lotus Flower","slug":"shitty-lotus-flower","creator":"zPhysixX","verifier":"donut737","category":"extended","listPercent":66,"thumbnailUrl":"https://i.ytimg.com/vi/WFyghtO-d54/maxresdefault.jpg","youtubeUrl":"https://youtu.be/WFyghtO-d54","gdId":"80715482"},{"rank":90,"name":"Shitty Super Probably Level","slug":"shitty-super-probably-level","creator":"Kiwi1938","verifier":"Kiwi1938","category":"extended","listPercent":66,"thumbnailUrl":"https://i.ytimg.com/vi/spe7voVrG64/maxresdefault.jpg","youtubeUrl":"https://youtu.be/spe7voVrG64","gdId":"89827397"},{"rank":91,"name":"Shitty Subterminal Point","slug":"shitty-subterminal-point-ca832054","creator":"DD3VeZi","verifier":"t0xx","category":"extended","listPercent":53,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=oHMmpAM0rEs","gdId":"127808804"},{"rank":92,"name":"Shitty Thinking Space II","slug":"shitty-thinking-space-ii","creator":"Machu0624","verifier":"Dygitol","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=LMf4QzpMsCY","gdId":"121969801"},{"rank":93,"name":"Shitty Enjoy","slug":"shitty-enjoy","creator":"MamaMauve","verifier":"Diverse","category":"extended","listPercent":66,"thumbnailUrl":"https://i.ytimg.com/vi/wRuWS4HjbqQ/maxresdefault.jpg","youtubeUrl":"https://youtu.be/wRuWS4HjbqQ","gdId":"90776242"},{"rank":94,"name":"Shitty Down Bass Incarnation","slug":"shitty-down-bass-incarnation","creator":"CarlisBored","verifier":"LzKlauss","category":"extended","listPercent":66,"thumbnailUrl":"https://i.ytimg.com/vi/Ejqzbb_jQW8/maxresdefault.jpg","youtubeUrl":"https://youtu.be/Ejqzbb_jQW8","gdId":"90642683"},{"rank":95,"name":"Shitty Combustion","slug":"shitty-combustion","creator":"ZNovastarts","verifier":"coolawesome2763","category":"extended","listPercent":66,"thumbnailUrl":"https://i.ytimg.com/vi/dJ9-AfYfzQY/maxresdefault.jpg","youtubeUrl":"https://youtu.be/dJ9-AfYfzQY?si=MTz340nqRfuuAc7V","gdId":"123015954"},{"rank":96,"name":"Shitty Gustavo Fring","slug":"shitty-gustavo-fring","creator":"Deceit","verifier":"Miguel6456","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=umLTIo9PCFk\u0026time_continue=5\u0026source_ve_path=NzY3NTg\u0026embeds_referring_euri=https%3A%2F%2Fglobalshittylist.com%2F","gdId":"93440358"},{"rank":97,"name":"Shitty NETWORK","slug":"shitty-network","creator":"Blink, Whitar","verifier":"Zernias","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://m.youtube.com/watch?v=_5WFjLw-aK0","gdId":"130743635"},{"rank":98,"name":"Shitty The Plunge","slug":"shitty-the-plunge","creator":"kiwvivi","verifier":"kiwvivi","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/xe1xUIdATVs?si=VLEsAbcQcQRaegiK","gdId":"148791069"},{"rank":99,"name":"Shitty Knights of Thunder","slug":"shitty-knights-of-thunder","creator":"Berriez","verifier":"Wdwiktor","category":"extended","listPercent":67,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=beXr1JVUENk\u0026time_continue=4\u0026source_ve_path=NzY3NTg\u0026embeds_referring_euri=https%3A%2F%2Fglobalshittylist.com%2F","gdId":"92002824"},{"rank":100,"name":"Shitty Ligaments Croises","slug":"shitty-ligaments-croises","creator":"DD3VeZi","verifier":"ugnke","category":"extended","listPercent":67,"thumbnailUrl":"/assets/levels/upload-1788856187349-7d315f04d64a.jpg","youtubeUrl":"https://www.youtube.com/watch?v=IeGE_ke3RtY","gdId":"142572450"},{"rank":101,"name":"Shitty RUST","slug":"shitty-rust","creator":"Sulky","verifier":"TgeRandomStuff","category":"extended","listPercent":68,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=VCKtUnPOIrk\u0026time_continue=0\u0026source_ve_path=NzY3NTg\u0026embeds_referring_euri=https%3A%2F%2Fglobalshittylist.com%2F","gdId":"73841618"},{"rank":102,"name":"Shitty Acheron Easy","slug":"shitty-acheron-easy","creator":"Prometheus","verifier":"BrightBird","category":"extended","listPercent":51,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=7wpNB8zcO8g","gdId":"100393020"},{"rank":103,"name":"Shitty OUROBOROS","slug":"shitty-ouroboros","creator":"TravelChimp, AugustVN, BlueTomcat, AcropolisBoy, Pandora, Ryoui, NoCtrl, Whitar, Grixi, Chaotrix, xcl_0624","verifier":"Grixi","category":"extended","listPercent":99,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/Mbm5XsQnpvs?si=lGoc_PUe6cgrXlrg","gdId":"79516866"},{"rank":104,"name":"Shitty Edge of Destiny","slug":"shitty-edge-of-destiny","creator":"Machu0624","verifier":"iraly","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=TCYf5refr_g\u0026time_continue=16\u0026source_ve_path=NzY3NTg\u0026embeds_referring_euri=https%3A%2F%2Fglobalshittylist.com%2F","gdId":"89708275"},{"rank":105,"name":"Shitty Britney No Sclears","slug":"shitty-britney-no-sclears","creator":"atmNalywhy","verifier":"Velance","category":"extended","listPercent":64,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/lI2VNx4zGos?si=kNhT3z3R2sP5Ra2b","gdId":"133438044"},{"rank":106,"name":"Shitty Bloodbath","slug":"shitty-bloodbath","creator":"Skybolt06","verifier":"Skybolt06","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=sv6T8VAF24s","gdId":"105994528"},{"rank":107,"name":"Shitty Cataclysm","slug":"shitty-cataclysm","creator":"CarlisBored \u0026 Prometheus","verifier":"Spaace","category":"extended","listPercent":75,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=jb8E5juRVDo\u0026t=1s","gdId":"81105328"},{"rank":108,"name":"Shitty Quantum Processing","slug":"shitty-quantum-processing","creator":"TravelChimp, IHas","verifier":"TravelChimp","category":"extended","listPercent":57,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=F6qxJkOa494","gdId":"69170794"},{"rank":109,"name":"SHITTY TERMINATION","slug":"shitty-termination","creator":"DD3VeZi","verifier":"boogermuncher67","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/QrPMikd1lm0","gdId":"146307096"},{"rank":110,"name":"Shitty Elevate","slug":"shitty-elevate","creator":"DD3VeZi","verifier":"boogermuncher67","category":"extended","listPercent":59,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=KIJ21GrXQ5Y","gdId":"148522888"},{"rank":111,"name":"Shitty Dormant","slug":"shitty-dormant","creator":"TravelChimp","verifier":"TravelChimp","category":"extended","listPercent":55,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=4SxMS3CXiIg","gdId":"124138332"},{"rank":112,"name":"Shitty EFEU","slug":"shitty-efeu","creator":"DD3VeZi","verifier":"aw1ero","category":"extended","listPercent":66,"thumbnailUrl":"/assets/levels/upload-1788856574771-c8368b5f8a80.jpg","youtubeUrl":"https://www.youtube.com/watch?v=7NNScZ2NgFE","gdId":"142500123"},{"rank":113,"name":"Shitty Rauchkammer","slug":"shitty-rauchkammer","creator":"thesixthclick","verifier":"cheeseburgareal_EDL","category":"extended","listPercent":65,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/B0-LRIJNfR0","gdId":"148844895"},{"rank":114,"name":"Shitty Firework","slug":"shitty-firework","creator":"Kobra456","verifier":"Kobra456","category":"extended","listPercent":80,"thumbnailUrl":null,"youtubeUrl":"https://www.youtube.com/watch?v=v9TkqNDg-lI","gdId":"66182456"},{"rank":115,"name":"Shitty SuperNova","slug":"shitty-supernova","creator":"Bepisz","verifier":"Bepisz","category":"extended","listPercent":78,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/RjuhVmkUUi4","gdId":"143252082"},{"rank":116,"name":"Shitty Cobwebs","slug":"shitty-cobwebs","creator":"Deceit","verifier":"Dxstgd","category":"extended","listPercent":66,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/uaNgnH06Taw?si=N3jFmCDuSmgXPx1U","gdId":"80507445"},{"rank":117,"name":"Shitty Carcano","slug":"shitty-carcano","creator":"Spaace","verifier":"Spaace","category":"extended","listPercent":99,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/WyImUsCW6I0?si=Dfd1yhfxOa3CY8Rb","gdId":"125238673"},{"rank":118,"name":"Shitty KILN","slug":"shitty-kiln","creator":"DD3VeZi","verifier":"aw1ero","category":"extended","listPercent":66,"thumbnailUrl":"/assets/levels/upload-1788856784388-758eb2a2c7e8.jpg","youtubeUrl":"https://www.youtube.com/watch?v=ai-BrTwTviA","gdId":"142500104"},{"rank":119,"name":"Shitty Sakupen hell","slug":"shitty-sakupen-hell","creator":"AcropolisBoy","verifier":"Silver21_1","category":"extended","listPercent":40,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/jMfo99JR7dA","gdId":"49508396"},{"rank":120,"name":"shitty Rauchkammer","slug":"shitty-rauchkammer-301bc39e","creator":"RahXman and Faktorys","verifier":"TNKGMD","category":"extended","listPercent":71,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/3NztrzQ-qeM?si=MyGBjVC9ODZE_wuR","gdId":"148872203"},{"rank":121,"name":"Shitty Shiver","slug":"shitty-shiver","creator":"DevTeam","verifier":"akratraiw","category":"extended","listPercent":99,"thumbnailUrl":null,"youtubeUrl":"https://youtu.be/sRmLH1ZKWfE?si=vfIzPTP1FaCLUGZu","gdId":"146369228"},{"rank":122,"name":"Shitty Laser Room","slug":"shitty-laser-room","creator":"Bepisz","verifier":"Bepisz","category":"extended","listPercent":98,"thumbnailUrl":"/assets/levels/upload-1789297627502-1b3f2a9c73ea.webp","youtubeUrl":"https://youtu.be/RK1zqidBExI","gdId":"144704945"}];
+        
+        let allLevels = [];
+        let remainingLevels = [];
+        let currentLevel = null;
+        let requiredPercent = 1;
+        let clearedCount = 0;
+        let history = [];
+        let isActive = false;
+        let skipsLeft = 0;
+
+        const categorySelect = document.getElementById('categorySelect');
+        const startBtn = document.getElementById('startBtn');
+        const giveUpBtn = document.getElementById('giveUpBtn');
+        const content = document.getElementById('content');
+        const requiredPercentEl = document.getElementById('requiredPercent');
+        const levelsClearedEl = document.getElementById('levelsCleared');
+        const totalLevelsEl = document.getElementById('totalLevels');
+        const historySection = document.getElementById('historySection');
+        const historyList = document.getElementById('historyList');
+        const restoreBtn = document.getElementById('restoreBtn');
+        const restorePanel = document.getElementById('restorePanel');
+        const exportBtn = document.getElementById('exportBtn');
+        const skipsInput = document.getElementById('skipsInput');
+        const skipsLeftEl = document.getElementById('skipsLeftEl');
+
+        const sourceBadge = document.getElementById('sourceBadge');
+
+        async function fetchLevels() {
+            content.innerHTML = '<div class="loading">Loading levels...</div>';
+            try {
+                const response = await fetch(`${API_BASE}/levels`);
+                const data = await response.json();
+                allLevels = data.data;
+                sourceBadge.textContent = `🟢 LIVE API — ${allLevels.length} levels loaded`;
+                sourceBadge.className = 'badge live';
+            } catch (error) {
+                allLevels = EMBEDDED_LEVELS;
+                sourceBadge.textContent = `🟡 OFFLINE SNAPSHOT — ${allLevels.length} levels (API blocks browser requests, snapshot from Sep 26 2026)`;
+                sourceBadge.className = 'badge offline';
+            }
+            sourceBadge.style.display = 'inline-block';
+            totalLevelsEl.textContent = allLevels.length;
+            document.getElementById('levelNames').innerHTML = allLevels.map(l => `<option value="${l.name}">`).join('');
+            content.innerHTML = '<div class="loading">Select category and click Start Challenge!</div>';
+        }
+
+        function getYoutubeId(url) {
+            if (!url) return null;
+            const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+            return m ? m[1] : null;
+        }
+
+        function getThumbnail(level) {
+            if (level.thumbnailUrl) {
+                return level.thumbnailUrl.startsWith('http')
+                    ? level.thumbnailUrl
+                    : `${SITE_BASE}${level.thumbnailUrl}`;
+            }
+            const ytId = getYoutubeId(level.youtubeUrl);
+            return ytId
+                ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`
+                : 'https://via.placeholder.com/800x450?text=No+Thumbnail';
+        }
+
+        function filterLevels() {
+            const category = categorySelect.value;
+            if (category === 'all') {
+                return [...allLevels];
+            }
+            return allLevels.filter(level => level.category === category);
+        }
+
+        function getRandomLevel() {
+            const index = Math.floor(Math.random() * remainingLevels.length);
+            return remainingLevels.splice(index, 1)[0];
+        }
+
+        function renderLevel(level) {
+            const thumbnailUrl = getThumbnail(level);
+
+            content.innerHTML = `
+                <div class="level-card">
+                    <h2>${level.name}</h2>
+                    <img src="${thumbnailUrl}" alt="${level.name}" class="thumbnail" onerror="this.src='https://via.placeholder.com/800x450?text=No+Thumbnail'">
+                    <div class="level-info">
+                        <div class="info-item">
+                            <div class="info-label">Rank</div>
+                            <div class="info-value">#${level.rank}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Creator</div>
+                            <div class="info-value">${level.creator}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Verifier</div>
+                            <div class="info-value">${level.verifier}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">List %</div>
+                            <div class="info-value">${level.listPercent}%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Category</div>
+                            <div class="info-value">${level.category}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">GD ID</div>
+                            <div class="info-value">${level.gdId}</div>
+                        </div>
+                    </div>
+                    ${level.youtubeUrl ? `<a href="${level.youtubeUrl}" target="_blank" style="display: inline-block; padding: 12px 24px; background: #ff0000; color: white; text-decoration: none; border-radius: 8px; margin-bottom: 15px;">Watch on YouTube</a>` : ''}
+                    ${level.description ? `<p style="margin-top: 15px; color: #666;">${level.description}</p>` : ''}
+                    <div class="input-group">
+                        <input type="number" id="percentInput" min="0" max="100" placeholder="Enter your %" onkeydown="if(event.key==='Enter')submitPercent()" />
+                        <button onclick="submitPercent()">Submit</button>
+                        <button onclick="skipLevel()" ${skipsLeft <= 0 ? 'disabled' : ''} style="background:#e67e22; border-color:#e67e22;">Skip (${skipsLeft})</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startChallenge() {
+            remainingLevels = filterLevels();
+            if (remainingLevels.length === 0) {
+                content.innerHTML = '<div class="error">No levels available for selected category!</div>';
+                return;
+            }
+            
+            requiredPercent = 1;
+            clearedCount = 0;
+            history = [];
+            isActive = true;
+            skipsLeft = parseInt(skipsInput.value) || 0;
+            
+            requiredPercentEl.textContent = requiredPercent + '%';
+            levelsClearedEl.textContent = clearedCount;
+            totalLevelsEl.textContent = remainingLevels.length;
+            skipsLeftEl.textContent = skipsLeft;
+            
+            startBtn.disabled = true;
+            giveUpBtn.disabled = false;
+            categorySelect.disabled = true;
+            skipsInput.disabled = true;
+            historySection.style.display = 'none';
+            restorePanel.style.display = 'none';
+            
+            nextLevel();
+        }
+
+        function nextLevel() {
+            if (remainingLevels.length === 0) {
+                endGame('No more levels remaining!');
+                return;
+            }
+            
+            currentLevel = getRandomLevel();
+            renderLevel(currentLevel);
+            totalLevelsEl.textContent = remainingLevels.length;
+        }
+
+        function submitPercent() {
+            const input = document.getElementById('percentInput');
+            const achievedPercent = parseInt(input.value);
+            
+            if (isNaN(achievedPercent) || achievedPercent < 0 || achievedPercent > 100) {
+                alert('Please enter a valid percentage (0-100)');
+                return;
+            }
+            
+            if (achievedPercent < requiredPercent) {
+                if (!confirm(`${achievedPercent}% is BELOW the required ${requiredPercent}% — this ENDS the run. Submit anyway?`)) return;
+                endGame(`Failed! You got ${achievedPercent}% but needed ${requiredPercent}%`);
+                return;
+            }
+
+            if (achievedPercent !== requiredPercent) {
+                if (!confirm(`Log ${achievedPercent}% on ${currentLevel.name}? Next level will require ${Math.min(achievedPercent + 1, 100)}%.`)) return;
+            }
+            
+            // Success
+            clearedCount++;
+            history.push({
+                level: currentLevel.name,
+                required: requiredPercent,
+                achieved: achievedPercent
+            });
+            
+            levelsClearedEl.textContent = clearedCount;
+            updateHistory();
+            
+            if (achievedPercent === 100) {
+                victory();
+                return;
+            }
+            
+            // Next level requires (achieved + 1)%
+            requiredPercent = achievedPercent + 1;
+            requiredPercentEl.textContent = requiredPercent + '%';
+            
+            nextLevel();
+        }
+
+        function victory() {
+            content.innerHTML = '<div class="victory">GG!</div>';
+            endGame('', true);
+        }
+
+        function endGame(message, isVictory = false) {
+            isActive = false;
+            startBtn.disabled = false;
+            giveUpBtn.disabled = true;
+            categorySelect.disabled = false;
+            skipsInput.disabled = false;
+            
+            if (!isVictory && message) {
+                content.innerHTML = `
+                    <div class="error">${message}</div>
+                    <div style="text-align: center; padding: 20px;">
+                        <h3>Challenge Over</h3>
+                        <p>Levels cleared: ${clearedCount}</p>
+                        <p>Final required %: ${requiredPercent}%</p>
+                    </div>
+                `;
+            }
+            
+            historySection.style.display = history.length > 0 ? 'block' : 'none';
+        }
+
+        function updateHistory() {
+            historyList.innerHTML = history.map(h => `
+                <div class="history-item">
+                    <span><strong>${h.level}</strong></span>
+                    <span>${h.skipped ? 'SKIPPED' : `Required: ${h.required}% | Achieved: ${h.achieved}%`}</span>
+                </div>
+            `).join('');
+            historySection.style.display = 'block';
+        }
+
+        function skipLevel() {
+            if (skipsLeft <= 0) { alert('No skips left!'); return; }
+            if (!confirm(`Skip ${currentLevel.name}? (${skipsLeft - 1} skips left after)`)) return;
+            skipsLeft--;
+            skipsLeftEl.textContent = skipsLeft;
+            history.push({ level: currentLevel.name, skipped: true });
+            updateHistory();
+            nextLevel();
+        }
+
+        function giveUp() {
+            if (confirm('Are you sure you want to give up?')) {
+                endGame('You gave up!');
+            }
+        }
+
+        function findLevelsByName(name) {
+            const n = name.trim().toLowerCase();
+            return allLevels.filter(l => l.name.toLowerCase() === n).sort((a, b) => a.rank - b.rank);
+        }
+
+        function restoreRun() {
+            const lines = document.getElementById('restoreText').value.split('\n').map(s => s.trim()).filter(Boolean);
+            const usedSlugs = new Set();
+            const entries = [];
+            const bad = [];
+
+            let restoredSkips = null;
+            for (const line of lines) {
+                let m = line.match(/^SKIPS:\s*(\d+)$/i);
+                if (m) { restoredSkips = parseInt(m[1], 10); continue; }
+                m = line.match(/^SKIP:\s*(.+)$/i);
+                if (m) {
+                    const sl = findLevelsByName(m[1]).find(l => !usedSlugs.has(l.slug));
+                    if (!sl) { bad.push(line); continue; }
+                    usedSlugs.add(sl.slug);
+                    entries.push({ level: sl, skipped: true });
+                    continue;
+                }
+                m = line.match(/^(.*?)\s+Required:\s*\d+%?\s*\|?\s*Achieved:\s*(\d+)%?\s*$/i);
+                if (!m) m = line.match(/^(.*?)\s*,\s*(\d+)%?\s*$/);
+                if (!m || !m[1].trim()) { bad.push(line); continue; }
+                const achieved = parseInt(m[2], 10);
+                const lvl = findLevelsByName(m[1]).find(l => !usedSlugs.has(l.slug));
+                if (!lvl || isNaN(achieved) || achieved < 0 || achieved > 100) { bad.push(line); continue; }
+                usedSlugs.add(lvl.slug);
+                entries.push({ level: lvl, achieved });
+            }
+
+            if (bad.length) {
+                alert('Could not match these lines:\n\n' + bad.join('\n'));
+                return;
+            }
+
+            const forceName = document.getElementById('forceNext').value.trim();
+            let forced = null;
+            if (forceName) {
+                forced = findLevelsByName(forceName).find(l => !usedSlugs.has(l.slug));
+                if (!forced) {
+                    alert('Force-next level not found or already used: ' + forceName);
+                    return;
+                }
+                usedSlugs.add(forced.slug);
+            }
+
+            remainingLevels = filterLevels().filter(l => !usedSlugs.has(l.slug));
+
+            let req = 1;
+            history = entries.map(e => {
+                if (e.skipped) return { level: e.level.name, skipped: true };
+                const h = { level: e.level.name, required: req, achieved: e.achieved };
+                req = Math.min(e.achieved + 1, 100);
+                return h;
+            });
+            requiredPercent = req;
+            clearedCount = entries.filter(e => !e.skipped).length;
+            skipsLeft = restoredSkips !== null ? restoredSkips : (parseInt(skipsInput.value) || 0);
+            isActive = true;
+
+            requiredPercentEl.textContent = requiredPercent + '%';
+            levelsClearedEl.textContent = clearedCount;
+            totalLevelsEl.textContent = remainingLevels.length;
+            skipsLeftEl.textContent = skipsLeft;
+            startBtn.disabled = true;
+            giveUpBtn.disabled = false;
+            categorySelect.disabled = true;
+            skipsInput.disabled = true;
+            restorePanel.style.display = 'none';
+            updateHistory();
+
+            if (forced) {
+                currentLevel = forced;
+                renderLevel(forced);
+            } else {
+                nextLevel();
+            }
+        }
+
+        async function exportRun() {
+            if (!history.length) {
+                alert('Nothing to export yet — clear a level first.');
+                return;
+            }
+            const text = `SKIPS: ${skipsLeft}\n` + history.map(h => h.skipped ? `SKIP: ${h.level}` : `${h.level}, ${h.achieved}`).join('\n');
+            document.getElementById('restoreText').value = text;
+            document.getElementById('forceNext').value = (isActive && currentLevel) ? currentLevel.name : '';
+            restorePanel.style.display = 'block';
+            let msg = 'Run loaded into restore box';
+            try {
+                await navigator.clipboard.writeText(text);
+                msg = 'Run copied to clipboard!';
+            } catch (e) {}
+            exportBtn.textContent = '✓ ' + msg;
+            setTimeout(() => exportBtn.textContent = 'Export Run', 2500);
+        }
+
+        restoreBtn.addEventListener('click', () => {
+            restorePanel.style.display = restorePanel.style.display === 'none' ? 'block' : 'none';
+        });
+        exportBtn.addEventListener('click', exportRun);
+        startBtn.addEventListener('click', startChallenge);
+        giveUpBtn.addEventListener('click', giveUp);
+
+        fetchLevels();
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+name: Refresh level data
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # every 30 minutes
+  workflow_dispatch:      # manual "Run workflow" button
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch levels and re-embed
+        run: |
+          curl -sf https://ultimateshittylist.fun/api/levels -o levels.json
+          python3 << 'EOF'
+          import json, re
+          data = json.load(open('levels.json'))['data']
+          keep = ['rank','name','slug','creator','verifier','category',
+                  'listPercent','thumbnailUrl','youtubeUrl','gdId','description']
+          slim = [{k: l.get(k) for k in keep} for l in data]
+          html = open('roulette.html').read()
+          html = re.sub(r'const EMBEDDED_LEVELS = [^\n]*;',
+                        'const EMBEDDED_LEVELS = ' + json.dumps(slim, ensure_ascii=False) + ';',
+                        html, count=1)
+          open('roulette.html', 'w').write(html)
+          print(f'Embedded {len(slim)} levels')
+          EOF
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add roulette.html
+          git diff --cached --quiet || git commit -m "chore: refresh level data"
+          git push
